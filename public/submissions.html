@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Submissions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 16px;
+      margin: 10px 0;
+      background: #28a745;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #218838;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #007bff;
+      color: #fff;
+      text-transform: uppercase;
+      font-size: 14px;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📊 Registered Clients</h2>
+    <button class="btn" onclick="downloadCSV()">⬇️ Download CSV</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Experience</th>
+          <th>Capital (₹)</th>
+          <th>Income Depend</th>
+          <th>Trading Type</th>
+        </tr>
+      </thead>
+      <tbody id="submissionsTable"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let submissions = [];
+
+    async function loadSubmissions() {
+      try {
+        const res = await fetch('/api/submissions');
+        submissions = await res.json();
+        const tableBody = document.getElementById('submissionsTable');
+        tableBody.innerHTML = "";
+
+        submissions.forEach(item => {
+          const row = `
+            <tr>
+              <td>${item.phone}</td>
+              <td>${item.email}</td>
+              <td>${item.tradingExp}</td>
+              <td>${item.capital}</td>
+              <td>${item.incomeDepend}</td>
+              <td>${item.tradingType}</td>
+            </tr>
+          `;
+          tableBody.innerHTML += row;
+        });
+      } catch (err) {
+        console.error("Error loading submissions:", err);
+      }
+    }
+
+    function downloadCSV() {
+      if (submissions.length === 0) {
+        alert("No submissions to download!");
+        return;
+      }
+
+      const headers = ["Phone", "Email", "Experience", "Capital (₹)", "Income Depend", "Trading Type"];
+      const rows = submissions.map(item => [
+        item.phone, item.email, item.tradingExp, item.capital, item.incomeDepend, item.tradingType
+      ]);
+
+      let csvContent = "data:text/csv;charset=utf-8," 
+        + headers.join(",") + "\n"
+        + rows.map(r => r.join(",")).join("\n");
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "client_submissions.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    loadSubmissions();
+  </script>
+</body>
+</html>
